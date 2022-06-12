@@ -164,3 +164,7 @@ Parameters:
 - consumerGroupId: a subscriber to one or more Kafka topics
 
 It accepts any dependency injection parameter you'll need to use.
+
+# Communit chat
+Any questions or thoughts? 
+Please, send us a message in our [discord server](https://discord.gg/xBaPuecx)!
