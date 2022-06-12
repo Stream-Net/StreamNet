@@ -165,6 +165,6 @@ Parameters:
 
 It accepts any dependency injection parameter you'll need to use.
 
-# Communit chat
+# Community chat
 Any questions or thoughts? 
 Please, send us a message in our [discord server](https://discord.gg/xBaPuecx)!
