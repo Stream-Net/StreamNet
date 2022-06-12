@@ -1,6 +1,10 @@
 # StreamNet
 A Kafka Client to easily connect with Kafka
 
+| Branch | Status                                                                                                                                                                                         |                                                                            
+|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| main   | [![main](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/otaviolarrosa/MassTransit/actions/workflows/publish.yml) | 
+
 # Pre-requisites
 - The .NET 6 SDK should be installed before continuing.
 - To use Apache Kafka, I recommend to use [docker](https://docs.docker.com/engine/install/) with [docker-compose](https://docs.docker.com/compose/).
@@ -8,9 +12,6 @@ A Kafka Client to easily connect with Kafka
 # docker-compose and kafka_server_jaas.conf
 To run a docker container with kafka, just use the docker-compose up command in the same folder of the .yml and .conf files.
 
-| Branch | Status                                                                                                                                                                                         |                                                                            
-|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| main   | [![main](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/otaviolarrosa/MassTransit/actions/workflows/publish.yml) | 
 
 
 ``` sh
