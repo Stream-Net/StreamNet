@@ -8,6 +8,10 @@ A Kafka Client to easily connect with Kafka
 # docker-compose and kafka_server_jaas.conf
 To run a docker container with kafka, just use the docker-compose up command in the same folder of the .yml and .conf files.
 
+| Branch | Status                                                                               |                                                                            
+|--------|--------------------------------------------------------------------------------------|
+| main   | [![main](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml)]  | 
+
 ``` sh
 (sudo) docker-compose up -d
 ```
@@ -157,4 +161,4 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 Parameters: 
 - consumerGroupId: a subscriber to one or more Kafka topics
 
-It accepts any dependency injection you'll need to use.
+It accepts any dependency injection parameter you'll need to use.
