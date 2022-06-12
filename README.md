@@ -3,7 +3,7 @@ A Kafka Client to easily connect with Kafka
 
 | Branch | Status                                                                                                                                                                                         |                                                                            
 |--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| main   | [![main](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/otaviolarrosa/MassTransit/actions/workflows/publish.yml) | 
+| main   | [![main](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml/badge.svg?branch=main&event=push)](https://github.com/otaviolarrosa/StreamNet/actions/workflows/publish.yml) | 
 
 # Pre-requisites
 - The .NET 6 SDK should be installed before continuing.
