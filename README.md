@@ -109,12 +109,12 @@ and add the following configurations:
 
 ### Configuring application startup
 At Startup.cs or Program.cs(in case of .net 6 or later), add the following line:
-``` cssharp 
+``` cs 
 builder.Services.AddProducer();
 ```
 ### Using a producer through dependency Injection
 Just inject the IProducer interface, and send message of any type in ProduceAsync() method.
-``` cssharp 
+``` cs 
 public class UseCaseTestImplementation : IUseCaseTestImplementation
 {
     private readonly IPublisher _publisher;
@@ -138,12 +138,12 @@ public interface IUseCaseTestImplementation
 # Consumer
 ### Configuring application startup
 At Startup.cs or Program.cs(in case of .net 6 or later), add the following lines:
-``` cssharp 
+``` cs 
 builder.Services.AddTransient<IUseCaseTestImplementation, UseCaseTestImplementation>();
 builder.Services.AddHostedService<MessageSampleEventConsumer>();
 ```
 
-``` cssharp
+``` cs
 public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 {
     private readonly IUseCaseTestImplementation _useCase;
