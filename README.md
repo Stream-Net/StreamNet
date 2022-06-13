@@ -163,6 +163,12 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 Parameters: 
 - consumerGroupId: a subscriber to one or more Kafka topics
 
+
+### Dead-letter
+How the dead-letter functionality works:
+If your consumer throws an exception, it will be automatically redirected to a new topic, with the folling name:
+YourMessageType_dead_letter.
+
 It accepts any dependency injection parameter you'll need to use.
 
 # Community c(h)at
