@@ -14,7 +14,7 @@ public static class Startup
 
     public static IServiceCollection AddProducer(this IServiceCollection services)
     {
-        services.AddScoped<IPublisher>();
+        services.AddTransient<IPublisher, Publisher>();
         return services;
     }
 }

@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using Confluent.Kafka;
 using StreamNet.Serializers;
 using Microsoft.Extensions.Hosting;
+using StreamNet.Producers;
 
 namespace StreamNet.Consumers;
 
@@ -41,7 +41,8 @@ public abstract class Consumer<TEvent> : IHostedService
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Console.WriteLine(ex.Message);
+            // await new Publisher().ProduceAsyncDeadLetter(Message);
         }
     }
 
@@ -52,12 +53,12 @@ public abstract class Consumer<TEvent> : IHostedService
         consumerConfig.GroupId = ConsumerGroupId;
         consumerConfig.EnableAutoCommit = true;
         consumerConfig.EnableAutoOffsetStore = true;
-        _config = consumerConfig;
+        _config = consumerConfig;https://localhost:7276;http
         _consumer = new ConsumerBuilder<string, TEvent>(_config)
             .SetValueDeserializer(new Deserializer<TEvent>())
             .Build();
         
-        await Task.Factory.StartNew(() =>
+        Task.Factory.StartNew(() =>
         {
             Consume();
         });

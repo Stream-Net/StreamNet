@@ -1,5 +1,4 @@
 using Confluent.Kafka;
-using StreamNet.Consumers;
 using StreamNet.Serializers;
 
 namespace StreamNet.Producers;
@@ -13,7 +12,7 @@ public class Publisher : IPublisher
             Settings.GetInstance();
             using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
                 .SetValueSerializer(new Serializer<T>()).Build();
-            await producerBuilder.ProduceAsync(message.GetType().Name, new Message<Null, T> {Value = message});
+            await producerBuilder.ProduceAsync(message?.GetType().Name, new Message<Null, T> {Value = message});
 
         }
         catch (Exception e)
@@ -21,6 +20,21 @@ public class Publisher : IPublisher
             Console.WriteLine(e);
             throw;
         }
-        
+    }
+    
+    internal async Task ProduceAsyncDeadLetter<T>(T message)
+    {
+        try
+        {
+            Settings.GetInstance();
+            using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
+                .SetValueSerializer(new Serializer<T>()).Build();
+            await producerBuilder.ProduceAsync($"{message?.GetType().Name}_dead_letter", new Message<Null, T> {Value = message});
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
