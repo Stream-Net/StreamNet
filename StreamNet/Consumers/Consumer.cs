@@ -42,7 +42,7 @@ public abstract class Consumer<TEvent> : IHostedService
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            // await new Publisher().ProduceAsyncDeadLetter(Message);
+            await new Publisher().ProduceAsyncDeadLetter(Message);
         }
     }
 
