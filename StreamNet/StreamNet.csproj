@@ -2,13 +2,11 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <version>1.3</version>
+        <version>1.3.1</version>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>StreamNet</RootNamespace>
     </PropertyGroup>
-    
-    
     <ItemGroup>
         <PackageReference Include="Confluent.Kafka" Version="1.8.2" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />

@@ -43,6 +43,7 @@ public abstract class Consumer<TEvent> : IHostedService
         {
             Console.WriteLine(ex.Message);
             await new Publisher().ProduceAsyncDeadLetter(Message);
+            Consume();
         }
     }
 
