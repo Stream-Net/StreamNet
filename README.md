@@ -117,7 +117,7 @@ At Startup.cs or Program.cs(in case of .net 6 or later), add the following line:
 builder.Services.AddProducer();
 ```
 ### Using a producer through dependency Injection
-Just inject the IProducer interface, and send message of any type in ProduceAsync() method.
+Just inject the IPublisher interface, and send message of any type in ProduceAsync() method.
 ``` cs 
 public class UseCaseTestImplementation : IUseCaseTestImplementation
 {
