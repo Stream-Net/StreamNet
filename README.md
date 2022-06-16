@@ -152,7 +152,7 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 {
     private readonly IUseCaseTestImplementation _useCase;
 
-    public MessageSampleEventConsumer(IUseCaseILogger<TestConsumer> logger, TestImplementation useCase) : base(logger, consumerGroupId: "myGroupId")
+    public MessageSampleEventConsumer(IUseCaseTestImplementation useCase, ILogger<TestConsumer> logger) : base(logger, consumerGroupId: "myGroupId")
     {
         _useCase = useCase;
     }
