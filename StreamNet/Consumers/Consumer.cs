@@ -34,7 +34,7 @@ public abstract class Consumer<TEvent> : IHostedService
     {
         try
         {
-            _consumer.Subscribe(typeof(TEvent).Name);
+            _consumer.Subscribe(typeof(TEvent).FullName);
             var cancelToken = new CancellationTokenSource();
             try
             {
