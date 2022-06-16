@@ -20,6 +20,12 @@ public class Settings
         var securityProtocol = configuration.GetSection("Kafka:SecurityProtocol").Value;
         var username = configuration.GetSection("Kafka:Username").Value;
         var password = configuration.GetSection("Kafka:Password").Value;
+        int.TryParse(configuration.GetSection("Kafka:RetryCount").Value, out var retryCount);
+        RetryCount = retryCount;
+        int.TryParse(configuration.GetSection("Kafka:TimeToRetryInSeconds").Value, out var timeToRetryInSeconds);
+        TimeToRetryInSeconds = timeToRetryInSeconds;
+        int.TryParse(configuration.GetSection("Kafka:ConsumerInstances").Value, out var consumerInstances);
+        TimeToRetryInSeconds = timeToRetryInSeconds;
         
         if (bootstrapServers.IsNullOrEmpty())
             throw new ArgumentNullException("BootstrapServers is required!");
@@ -60,7 +66,7 @@ public class Settings
     }
 
     private static Settings _instance;
-    private static readonly object _lock = new object();
+    private static readonly object _lock = new();
 
     public static Settings GetInstance()
     {
@@ -98,4 +104,7 @@ public class Settings
     public static IAdminClient AdminClient { get; private set; }
     public static ProducerConfig ProducerConfig { get; private set; }
     public static ConsumerConfig ConsumerConfig { get; private set; }
+    public static int RetryCount { get; private set; }
+    public static int TimeToRetryInSeconds { get; private set; }
+    public static int ConsumerInstances { get; private set; }
 }

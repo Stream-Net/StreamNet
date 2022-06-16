@@ -84,25 +84,29 @@ and add the following configurations:
     "SaslMechanism": "Plain",
     "SecurityProtocol": "SaslPlaintext",
     "Username": "your_user",
-    "Password": "your_password"
+    "Password": "your_password",
+    "RetryCount": 3,
+    "TimeToRetryInSeconds" : 1
 }
 ```
 ### appsettings configuration fields
 
-1. BootstrapServers: server where your kafka is running, with the port.<br>
-2. SaslMechanism: Authorization mechanism used on server-side, this field accepts the following values:
+1. **BootstrapServers**: server where your kafka is running, with the port.<br>
+2. **SaslMechanism**: Authorization mechanism used on server-side, this field accepts the following values:
    1. "GssApi"
    2. "Plain"
    3. "ScramSha256"
    4. "ScramSha512"
    5. "OAuthBearer"
-3. SecurityProtocol: The security protocol used to authorize your user at the kafka broker-side, this field accepts the following values:
+3. **SecurityProtocol**: The security protocol used to authorize your user at the kafka broker-side, this field accepts the following values:
    1. Plaintext
    2. Ssl
    3. SaslPlaintext
    4. SaslSsl
-4. Username: your username.
-5. Pasword: your password.
+4. **Username**: your username.
+5. **Pasword**: your password.
+6. **RetryCount**: Number of retentatives your consumer will do, before sending the message o dead letter topic.
+7. **TimeToRetryInSeconds**: The interval between retentatives for the consumer.
 
 
 ## Producer
@@ -148,7 +152,7 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 {
     private readonly IUseCaseTestImplementation _useCase;
 
-    public MessageSampleEventConsumer(IUseCaseTestImplementation useCase) : base(consumerGroupId: "myGroupId")
+    public MessageSampleEventConsumer(IUseCaseILogger<TestConsumer> logger, TestImplementation useCase) : base(logger, consumerGroupId: "myGroupId")
     {
         _useCase = useCase;
     }
@@ -162,6 +166,7 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 ```
 Parameters: 
 - consumerGroupId: a subscriber to one or more Kafka topics
+- logger: a instância of ILogger to log the consumed messages and give some data to client.
 
 
 ### Dead-letter
