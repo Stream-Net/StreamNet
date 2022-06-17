@@ -28,8 +28,8 @@ namespace StreamNet.Consumers
             Settings.GetInstance();
             _logger = logger;
             
-            if (UnitTestDetector.IsRunningFromUnitTesting())
-                return;
+            // if (UnitTestDetector.IsRunningFromUnitTesting())
+            //     return;
             
             SetConsumerId();
             SetTopicName();

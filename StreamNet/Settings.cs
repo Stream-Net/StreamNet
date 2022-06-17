@@ -1,11 +1,10 @@
 using System;
+using System.IO;
 using System.Net;
 using Confluent.Kafka;
 using StreamNet.Extensions;
 using Microsoft.Extensions.Configuration;
 using StreamNet.UnitTestingHelpers;
-
-// using StreamNet.UnitTestingHelpers;
 
 namespace StreamNet
 {
@@ -13,14 +12,15 @@ namespace StreamNet
     {
         private Settings()
         {
-            if (UnitTestDetector.IsRunningFromUnitTesting())
-                return;
-
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
+            var jsonFiles = Directory.EnumerateFiles(".", "*.json", SearchOption.AllDirectories);
+            var builder = new ConfigurationBuilder();
+            // foreach (var path in jsonFiles) builder.AddJsonFile(path);
+            builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            builder.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",
+                optional: true);
+            builder.SetBasePath(Environment.CurrentDirectory);
+            builder.AddEnvironmentVariables();
+            var configuration = builder.Build();
 
             var bootstrapServers = configuration.GetSection("Kafka:BootstrapServers").Value;
             var saslMechanism = configuration.GetSection("Kafka:SaslMechanism").Value;
@@ -35,12 +35,12 @@ namespace StreamNet
             TimeToRetryInSeconds = timeToRetryInSeconds;
 
             if (bootstrapServers.IsNullOrEmpty())
-                // if (!UnitTestDetector.IsRunningFromUnitTesting())
-                throw new ArgumentNullException("BootstrapServers is required!");
+                if (!UnitTestDetector.IsRunningFromUnitTesting())
+                    throw new ArgumentNullException("BootstrapServers is required!");
 
             if ((username.IsNullOrEmpty() || password.IsNullOrEmpty()))
-                // if (!UnitTestDetector.IsRunningFromUnitTesting())
-                throw new ArgumentNullException("Username and password is required!");
+                if (!UnitTestDetector.IsRunningFromUnitTesting())
+                    throw new ArgumentNullException("Username and password is required!");
 
             var config = new AdminClientConfig
             {
@@ -87,33 +87,42 @@ namespace StreamNet
 
         private SecurityProtocol GetSecurityProtocol(string securityProtocol)
         {
-            // if (UnitTestDetector.IsRunningFromUnitTesting())
-            //     return default;
-
-            return securityProtocol switch
+            switch (securityProtocol)
             {
-                "Plaintext" => SecurityProtocol.Plaintext,
-                "Ssl" => SecurityProtocol.Ssl,
-                "SaslPlaintext" => SecurityProtocol.SaslPlaintext,
-                "SaslSsl" => SecurityProtocol.SaslSsl,
-                _ => throw new ArgumentNullException("Security Protocol is required!")
-            };
+                case "PlainText":
+                    return SecurityProtocol.Plaintext;
+                case "Ssl":
+                    return SecurityProtocol.Ssl;
+                case "SaslPlaintext":
+                    return SecurityProtocol.SaslPlaintext;
+                case "SaslSsl":
+                    return SecurityProtocol.SaslSsl;
+                default:
+                    return !UnitTestDetector.IsRunningFromUnitTesting()
+                        ? throw new ArgumentNullException("Security Protocol is required!")
+                        : (SecurityProtocol) default!;
+            }
         }
 
         private SaslMechanism GetSaslMechanism(string saslMechanism)
         {
-            // if (UnitTestDetector.IsRunningFromUnitTesting())
-            //     return default;
-
-            return saslMechanism switch
+            switch (saslMechanism)
             {
-                "GssApi" => SaslMechanism.Gssapi,
-                "Plain" => SaslMechanism.Plain,
-                "ScramSha256" => SaslMechanism.ScramSha256,
-                "ScramSha512" => SaslMechanism.ScramSha512,
-                "OAuthBearer" => SaslMechanism.OAuthBearer,
-                _ => throw new ArgumentNullException("Sasl Mechanism is required !")
-            };
+                case "GssApi":
+                    return SaslMechanism.Gssapi;
+                case "Plain":
+                    return SaslMechanism.Plain;
+                case "ScramSha256":
+                    return SaslMechanism.ScramSha256;
+                case "ScramSha512":
+                    return SaslMechanism.ScramSha512;
+                case "OAuthBearer":
+                    return SaslMechanism.OAuthBearer;
+                default:
+                    return !UnitTestDetector.IsRunningFromUnitTesting()
+                        ? throw new ArgumentNullException("Sasl Mechanism is required !")
+                        : (SaslMechanism) default!;
+            }
         }
 
         public static IAdminClient AdminClient { get; private set; }
@@ -121,6 +130,5 @@ namespace StreamNet
         public static ConsumerConfig ConsumerConfig { get; private set; }
         public static int RetryCount { get; private set; }
         public static int TimeToRetryInSeconds { get; private set; }
-        public static int ConsumerInstances { get; private set; }
     }
 }
