@@ -72,7 +72,7 @@ public abstract class Consumer<TEvent> : IHostedService
         catch (Exception ex)
         {
             _logger.LogInformation("Sending message to dead-letter {@Message}", Message);
-            await new Publisher().ProduceAsyncDeadLetter(Message);
+            await new Publisher().ProduceAsyncDeadLetter(Message, TopicName);
             Consume();
         }
     }
