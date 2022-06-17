@@ -51,7 +51,7 @@ namespace StreamNet.Consumers
         }
 
 
-        protected abstract Task HandleAsync();
+        public abstract Task HandleAsync();
 
         protected async Task Consume()
         {
