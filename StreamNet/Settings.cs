@@ -13,6 +13,9 @@ namespace StreamNet
     {
         private Settings()
         {
+            if (UnitTestDetector.IsRunningFromUnitTesting())
+                return;
+
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -32,12 +35,12 @@ namespace StreamNet
             TimeToRetryInSeconds = timeToRetryInSeconds;
 
             if (bootstrapServers.IsNullOrEmpty())
-                if (!UnitTestDetector.IsRunningFromUnitTesting())
-                    throw new ArgumentNullException("BootstrapServers is required!");
+                // if (!UnitTestDetector.IsRunningFromUnitTesting())
+                throw new ArgumentNullException("BootstrapServers is required!");
 
             if ((username.IsNullOrEmpty() || password.IsNullOrEmpty()))
-                if (!UnitTestDetector.IsRunningFromUnitTesting())
-                    throw new ArgumentNullException("Username and password is required!");
+                // if (!UnitTestDetector.IsRunningFromUnitTesting())
+                throw new ArgumentNullException("Username and password is required!");
 
             var config = new AdminClientConfig
             {
@@ -84,6 +87,9 @@ namespace StreamNet
 
         private SecurityProtocol GetSecurityProtocol(string securityProtocol)
         {
+            // if (UnitTestDetector.IsRunningFromUnitTesting())
+            //     return default;
+
             return securityProtocol switch
             {
                 "Plaintext" => SecurityProtocol.Plaintext,
@@ -96,6 +102,9 @@ namespace StreamNet
 
         private SaslMechanism GetSaslMechanism(string saslMechanism)
         {
+            // if (UnitTestDetector.IsRunningFromUnitTesting())
+            //     return default;
+
             return saslMechanism switch
             {
                 "GssApi" => SaslMechanism.Gssapi,

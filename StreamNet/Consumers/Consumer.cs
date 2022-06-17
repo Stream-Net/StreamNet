@@ -27,6 +27,10 @@ namespace StreamNet.Consumers
         {
             Settings.GetInstance();
             _logger = logger;
+            
+            if (UnitTestDetector.IsRunningFromUnitTesting())
+                return;
+            
             SetConsumerId();
             SetTopicName();
             _retryPolicy = Policy.Handle<Exception>()
