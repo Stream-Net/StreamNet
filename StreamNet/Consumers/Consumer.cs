@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using StreamNet.Producers;
+using StreamNet.UnitTestingHelpers;
 
 namespace StreamNet.Consumers
 {
@@ -45,7 +46,7 @@ namespace StreamNet.Consumers
             var consumerGroup =
                 ((ConsumerGroupAttribute) Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!)
                 .ConsumerGroup;
-            if (string.IsNullOrEmpty(consumerGroup))
+            if (string.IsNullOrEmpty(consumerGroup) && !UnitTestDetector.IsRunningFromUnitTesting())
                 throw new ArgumentNullException($"ConsumerGroup attribute is required!");
             ConsumerGroupId = consumerGroup;
         }

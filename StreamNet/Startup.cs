@@ -1,6 +1,7 @@
 using StreamNet.Consumers;
 using StreamNet.Producers;
 using Microsoft.Extensions.DependencyInjection;
+using StreamNet.UnitTestingHelpers;
 
 namespace StreamNet
 {

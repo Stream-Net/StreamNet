@@ -3,6 +3,9 @@ using System.Net;
 using Confluent.Kafka;
 using StreamNet.Extensions;
 using Microsoft.Extensions.Configuration;
+using StreamNet.UnitTestingHelpers;
+
+// using StreamNet.UnitTestingHelpers;
 
 namespace StreamNet
 {
@@ -29,10 +32,12 @@ namespace StreamNet
             TimeToRetryInSeconds = timeToRetryInSeconds;
 
             if (bootstrapServers.IsNullOrEmpty())
-                throw new ArgumentNullException("BootstrapServers is required!");
+                if (!UnitTestDetector.IsRunningFromUnitTesting())
+                    throw new ArgumentNullException("BootstrapServers is required!");
 
-            if (username.IsNullOrEmpty() || password.IsNullOrEmpty())
-                throw new ArgumentNullException("Username and password is required!");
+            if ((username.IsNullOrEmpty() || password.IsNullOrEmpty()))
+                if (!UnitTestDetector.IsRunningFromUnitTesting())
+                    throw new ArgumentNullException("Username and password is required!");
 
             var config = new AdminClientConfig
             {
