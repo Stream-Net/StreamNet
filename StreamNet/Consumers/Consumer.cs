@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Confluent.Kafka;
 using StreamNet.Serializers;
 using Microsoft.Extensions.Hosting;
@@ -6,91 +9,95 @@ using Polly;
 using Polly.Retry;
 using StreamNet.Producers;
 
-namespace StreamNet.Consumers;
-
-public abstract class Consumer<TEvent> : IHostedService
+namespace StreamNet.Consumers
 {
-    private ConsumerConfig _config;
-    private AsyncRetryPolicy _retryPolicy;
-    protected IConsumer<string, TEvent> _consumer;
-    protected ConsumeResult<string, TEvent> _consumeResult;
-    private string ConsumerGroupId { get; set; }
-    private string TopicName { get; set; }
-    protected TEvent Message { get; set; }
-    protected readonly ILogger<Consumer<TEvent>> _logger;
-
-    protected Consumer(ILogger<Consumer<TEvent>> logger)
+    public abstract class Consumer<TEvent> : IHostedService
     {
-        Settings.GetInstance();
-        _logger = logger;
-        SetConsumerId();
-        SetTopicName();
-        _retryPolicy = Policy.Handle<Exception>()
-            .WaitAndRetryAsync(retryCount: Settings.RetryCount,
-                sleepDurationProvider: _ => TimeSpan.FromSeconds(Settings.TimeToRetryInSeconds));
-    }
+        private ConsumerConfig _config;
+        private AsyncRetryPolicy _retryPolicy;
+        protected IConsumer<string, TEvent> _consumer;
+        protected ConsumeResult<string, TEvent> _consumeResult;
+        private string ConsumerGroupId { get; set; }
+        private string TopicName { get; set; }
+        protected TEvent Message { get; set; }
+        protected readonly ILogger<Consumer<TEvent>> _logger;
 
-    private void SetTopicName()
-    {
-        var topicNameFromAttribute = ((TopicNameAttribute) Attribute.GetCustomAttribute(GetType(), typeof(TopicNameAttribute))!)?.TopicName;
-        TopicName = string.IsNullOrEmpty(topicNameFromAttribute) ? typeof(TEvent).FullName : topicNameFromAttribute;
-    }
-
-    private void SetConsumerId()
-    {
-        var consumerGroup = ((ConsumerGroupAttribute) Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!).ConsumerGroup;
-        if (string.IsNullOrEmpty(consumerGroup))
-            throw new ArgumentNullException($"ConsumerGroup attribute is required!");
-        ConsumerGroupId = consumerGroup;
-    }
-
-
-    protected abstract Task HandleAsync();
-
-    protected async Task Consume()
-    {
-        try
+        protected Consumer(ILogger<Consumer<TEvent>> logger)
         {
-            _consumer.Subscribe(TopicName);
-            var cancelToken = new CancellationTokenSource();
+            Settings.GetInstance();
+            _logger = logger;
+            SetConsumerId();
+            SetTopicName();
+            _retryPolicy = Policy.Handle<Exception>()
+                .WaitAndRetryAsync(retryCount: Settings.RetryCount,
+                    sleepDurationProvider: _ => TimeSpan.FromSeconds(Settings.TimeToRetryInSeconds));
+        }
+
+        private void SetTopicName()
+        {
+            var topicNameFromAttribute =
+                ((TopicNameAttribute) Attribute.GetCustomAttribute(GetType(), typeof(TopicNameAttribute))!)?.TopicName;
+            TopicName = string.IsNullOrEmpty(topicNameFromAttribute) ? typeof(TEvent).FullName : topicNameFromAttribute;
+        }
+
+        private void SetConsumerId()
+        {
+            var consumerGroup =
+                ((ConsumerGroupAttribute) Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!)
+                .ConsumerGroup;
+            if (string.IsNullOrEmpty(consumerGroup))
+                throw new ArgumentNullException($"ConsumerGroup attribute is required!");
+            ConsumerGroupId = consumerGroup;
+        }
+
+
+        protected abstract Task HandleAsync();
+
+        protected async Task Consume()
+        {
             try
             {
-                while (true)
+                _consumer.Subscribe(TopicName);
+                var cancelToken = new CancellationTokenSource();
+                try
                 {
-                    _consumeResult = _consumer.Consume(cancelToken.Token);
-                    Message = _consumeResult.Message.Value;
-                    _logger.LogInformation("Processing message: {@Message}", Message);
-                    await _retryPolicy.ExecuteAsync(async () => { await HandleAsync(); });
+                    while (true)
+                    {
+                        _consumeResult = _consumer.Consume(cancelToken.Token);
+                        Message = _consumeResult.Message.Value;
+                        _logger.LogInformation("Processing message: {@Message}", Message);
+                        await _retryPolicy.ExecuteAsync(async () => { await HandleAsync(); });
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _consumer.Close();
+                    throw;
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                _consumer.Close();
-                throw;
+                _logger.LogInformation("Sending message to dead-letter {@Message}", Message);
+                await new Publisher().ProduceAsyncDeadLetter(Message, TopicName);
+                Consume();
             }
         }
-        catch (Exception ex)
+
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Sending message to dead-letter {@Message}", Message);
-            await new Publisher().ProduceAsyncDeadLetter(Message, TopicName);
-            Consume();
+            Settings.GetInstance();
+            var consumerConfig = Settings.ConsumerConfig;
+            consumerConfig.GroupId = ConsumerGroupId;
+            consumerConfig.EnableAutoCommit = true;
+            consumerConfig.EnableAutoOffsetStore = true;
+            _config = consumerConfig;
+            _consumer = new ConsumerBuilder<string, TEvent>(_config)
+                .SetValueDeserializer(new Deserializer<TEvent>())
+                .Build();
+
+            Task.Factory.StartNew(async () => { return Consume(); });
         }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        Settings.GetInstance();
-        var consumerConfig = Settings.ConsumerConfig;
-        consumerConfig.GroupId = ConsumerGroupId;
-        consumerConfig.EnableAutoCommit = true;
-        consumerConfig.EnableAutoOffsetStore = true;
-        _config = consumerConfig;
-        _consumer = new ConsumerBuilder<string, TEvent>(_config)
-            .SetValueDeserializer(new Deserializer<TEvent>())
-            .Build();
-
-        Task.Factory.StartNew(async () => { return Consume(); });
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

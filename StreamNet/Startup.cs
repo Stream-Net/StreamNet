@@ -2,19 +2,21 @@ using StreamNet.Consumers;
 using StreamNet.Producers;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace StreamNet;
-
-public static class Startup
+namespace StreamNet
 {
-    public static IServiceCollection AddConsumer<TConsumer, TEvent>(this IServiceCollection services) where TConsumer : Consumer<TEvent>
+    public static class Startup
     {
-        services.AddHostedService<TConsumer>();
-        return services;
-    }
+        public static IServiceCollection AddConsumer<TConsumer, TEvent>(this IServiceCollection services)
+            where TConsumer : Consumer<TEvent>
+        {
+            services.AddHostedService<TConsumer>();
+            return services;
+        }
 
-    public static IServiceCollection AddProducer(this IServiceCollection services)
-    {
-        services.AddTransient<IPublisher, Publisher>();
-        return services;
+        public static IServiceCollection AddProducer(this IServiceCollection services)
+        {
+            services.AddTransient<IPublisher, Publisher>();
+            return services;
+        }
     }
 }

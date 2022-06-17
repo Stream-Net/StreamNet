@@ -1,6 +1,9 @@
-namespace StreamNet.Producers;
+using System.Threading.Tasks;
 
-public interface IPublisher
+namespace StreamNet.Producers
 {
-    Task ProduceAsync<T>(T message, string? topicName = null);
+    public interface IPublisher
+    {
+        Task ProduceAsync<T>(T message, string? topicName = null);
+    }
 }

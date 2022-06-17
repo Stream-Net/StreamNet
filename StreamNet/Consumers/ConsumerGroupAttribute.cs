@@ -1,8 +1,11 @@
-namespace StreamNet.Consumers;
+using System;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class ConsumerGroupAttribute : Attribute
+namespace StreamNet.Consumers
 {
-    public string ConsumerGroup { get; }
-    public ConsumerGroupAttribute(string consumerGroup) => ConsumerGroup = consumerGroup;
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ConsumerGroupAttribute : Attribute
+    {
+        public string ConsumerGroup { get; }
+        public ConsumerGroupAttribute(string consumerGroup) => ConsumerGroup = consumerGroup;
+    }
 }

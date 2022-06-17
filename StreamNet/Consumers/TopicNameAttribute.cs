@@ -1,8 +1,11 @@
-namespace StreamNet.Consumers;
+using System;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class TopicNameAttribute : Attribute
+namespace StreamNet.Consumers
 {
-    public string TopicName { get; }
-    public TopicNameAttribute(string topicName) => TopicName = topicName;
+    [AttributeUsage(AttributeTargets.Class)]
+    public class TopicNameAttribute : Attribute
+    {
+        public string TopicName { get; }
+        public TopicNameAttribute(string topicName) => TopicName = topicName;
+    }
 }

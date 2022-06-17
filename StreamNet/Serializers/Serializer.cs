@@ -1,13 +1,14 @@
 using System.Text;
 using Confluent.Kafka;
 
-namespace StreamNet.Serializers;
-
-public class Serializer<TEvent> : ISerializer<TEvent>
+namespace StreamNet.Serializers
 {
-    public byte[] Serialize(TEvent data, SerializationContext context)
+    public class Serializer<TEvent> : ISerializer<TEvent>
     {
-        var deserializedWeatherForecast = System.Text.Json.JsonSerializer.Serialize(data);
-        return Encoding.ASCII.GetBytes(deserializedWeatherForecast);
+        public byte[] Serialize(TEvent data, SerializationContext context)
+        {
+            var deserializedWeatherForecast = System.Text.Json.JsonSerializer.Serialize(data);
+            return Encoding.ASCII.GetBytes(deserializedWeatherForecast);
+        }
     }
 }

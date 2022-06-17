@@ -1,46 +1,49 @@
+using System;
+using System.Threading.Tasks;
 using Confluent.Kafka;
 using StreamNet.Serializers;
 
-namespace StreamNet.Producers;
-
-public class Publisher : IPublisher
+namespace StreamNet.Producers
 {
-    public async Task ProduceAsync<T>(T message, string? topicName = null)
+    public class Publisher : IPublisher
     {
-        try
+        public async Task ProduceAsync<T>(T message, string? topicName = null)
         {
-            Settings.GetInstance();
-            using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
-                .SetValueSerializer(new Serializer<T>()).Build();
-            topicName ??= message?.GetType().FullName;
-            await producerBuilder.ProduceAsync(topicName, new Message<Null, T> {Value = message});
+            try
+            {
+                Settings.GetInstance();
+                using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
+                    .SetValueSerializer(new Serializer<T>()).Build();
+                topicName ??= message?.GetType().FullName;
+                await producerBuilder.ProduceAsync(topicName, new Message<Null, T> {Value = message});
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-    }
 
-    internal async Task ProduceAsyncDeadLetter<T>(T message, string? topicName = null)
-    {
-        try
+        internal async Task ProduceAsyncDeadLetter<T>(T message, string? topicName = null)
         {
-            Settings.GetInstance();
-            using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
-                .SetValueSerializer(new Serializer<T>()).Build();
-            topicName ??= message?.GetType().FullName;
+            try
+            {
+                Settings.GetInstance();
+                using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
+                    .SetValueSerializer(new Serializer<T>()).Build();
+                topicName ??= message?.GetType().FullName;
 
-            if (string.IsNullOrEmpty(topicName))
-                return;
-            
-            await producerBuilder.ProduceAsync($"{topicName}_dead_letter",
-                new Message<Null, T> {Value = message});
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
+                if (string.IsNullOrEmpty(topicName))
+                    return;
+
+                await producerBuilder.ProduceAsync($"{topicName}_dead_letter",
+                    new Message<Null, T> {Value = message});
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }
