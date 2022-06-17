@@ -12,8 +12,6 @@ A Kafka Client to easily connect with Kafka
 # docker-compose and kafka_server_jaas.conf
 To run a docker container with kafka, just use the docker-compose up command in the same folder of the .yml and .conf files.
 
-
-
 ``` sh
 (sudo) docker-compose up -d
 ```
@@ -118,6 +116,11 @@ builder.Services.AddProducer();
 ```
 ### Using a producer through dependency Injection
 Just inject the IPublisher interface, and send message of any type in ProduceAsync() method.
+You can also, use the optional parameter **topicName** to specify a topic name. 
+By default, the topic will be created with the following pattern: 
+```
+Your.Namespace.Concatenated.With.Your.Event.Contract
+```
 ``` cs 
 public class UseCaseTestImplementation : IUseCaseTestImplementation
 {
@@ -129,7 +132,7 @@ public class UseCaseTestImplementation : IUseCaseTestImplementation
     }
     public async Task ExecuteAsync(MessageSampleEvent message)
     {
-        await _publisher.ProduceAsync(message);
+        await _publisher.ProduceAsync(message, "your.topic.name");
     }
 }
 
@@ -148,11 +151,13 @@ builder.Services.AddHostedService<MessageSampleEventConsumer>();
 ```
 
 ``` cs
+[ConsumerGroup("consumerGroupId")] //Required
+[TopicName("your.topic.name")] //Optional
 public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
 {
     private readonly IUseCaseTestImplementation _useCase;
 
-    public MessageSampleEventConsumer(IUseCaseTestImplementation useCase, ILogger<TestConsumer> logger) : base(logger, consumerGroupId: "myGroupId")
+    public MessageSampleEventConsumer(IUseCaseTestImplementation useCase, ILogger<TestConsumer> logger) : base(logger)
     {
         _useCase = useCase;
     }
@@ -164,8 +169,16 @@ public class MessageSampleEventConsumer : Consumer<MessageSampleEvent>
     }
 }
 ```
+Required Attributes:
+- ConsumerGroup: a subscriber to one or more Kafka topics
+
+Optional Parameters:
+- TopicName: The name for your topic. If you don't specify, your consumer will subscribe a topic with the following pattern:
+```
+Your.Namespace.Concatenated.With.Your.Event.Contract
+```
+
 Parameters: 
-- consumerGroupId: a subscriber to one or more Kafka topics
 - logger: a instância of ILogger to log the consumed messages and give some data to client.
 
 

@@ -10,23 +10,40 @@ namespace StreamNet.Consumers;
 
 public abstract class Consumer<TEvent> : IHostedService
 {
-    protected readonly ILogger<Consumer<TEvent>> _logger;
     private ConsumerConfig _config;
+    private AsyncRetryPolicy _retryPolicy;
     protected IConsumer<string, TEvent> _consumer;
     protected ConsumeResult<string, TEvent> _consumeResult;
-    protected string ConsumerGroupId { get; }
+    private string ConsumerGroupId { get; set; }
+    private string TopicName { get; set; }
     protected TEvent Message { get; set; }
-    private AsyncRetryPolicy _retryPolicy;
+    protected readonly ILogger<Consumer<TEvent>> _logger;
 
-    protected Consumer(ILogger<Consumer<TEvent>> logger, string consumerGroupId)
+    protected Consumer(ILogger<Consumer<TEvent>> logger)
     {
         Settings.GetInstance();
         _logger = logger;
-        ConsumerGroupId = consumerGroupId;
+        SetConsumerId();
+        SetTopicName();
         _retryPolicy = Policy.Handle<Exception>()
             .WaitAndRetryAsync(retryCount: Settings.RetryCount,
                 sleepDurationProvider: _ => TimeSpan.FromSeconds(Settings.TimeToRetryInSeconds));
     }
+
+    private void SetTopicName()
+    {
+        var topicNameFromAttribute = ((TopicNameAttribute) Attribute.GetCustomAttribute(GetType(), typeof(TopicNameAttribute))!)?.TopicName;
+        TopicName = string.IsNullOrEmpty(topicNameFromAttribute) ? typeof(TEvent).FullName : topicNameFromAttribute;
+    }
+
+    private void SetConsumerId()
+    {
+        var consumerGroup = ((ConsumerGroupAttribute) Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!).ConsumerGroup;
+        if (string.IsNullOrEmpty(consumerGroup))
+            throw new ArgumentNullException($"ConsumerGroup attribute is required!");
+        ConsumerGroupId = consumerGroup;
+    }
+
 
     protected abstract Task HandleAsync();
 
@@ -34,7 +51,7 @@ public abstract class Consumer<TEvent> : IHostedService
     {
         try
         {
-            _consumer.Subscribe(typeof(TEvent).FullName);
+            _consumer.Subscribe(TopicName);
             var cancelToken = new CancellationTokenSource();
             try
             {
