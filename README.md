@@ -179,7 +179,7 @@ Your.Namespace.Concatenated.With.Your.Event.Contract
 ```
 
 Parameters: 
-- logger: a instância of ILogger to log the consumed messages and give some data to client.
+- logger: the instance of ILogger to log the consumed messages and give some data to client.
 
 
 ### Dead-letter
