@@ -7,15 +7,23 @@ namespace StreamNet.Producers
 {
     public class Publisher : IPublisher
     {
+        public Publisher()
+        {
+            Settings.GetInstance();
+        }
+
         public async Task ProduceAsync<T>(T message, string? topicName = null)
         {
             try
             {
-                Settings.GetInstance();
-                using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
-                    .SetValueSerializer(new Serializer<T>()).Build();
-                topicName ??= message?.GetType().FullName;
-                await producerBuilder.ProduceAsync(topicName, new Message<Null, T> {Value = message});
+                Task.Run(async () =>
+                {
+                    using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
+                        .SetValueSerializer(new Serializer<T>()).Build();
+                    topicName ??= message?.GetType().FullName;
+                    await producerBuilder.ProduceAsync(topicName, new Message<Null, T> {Value = message});
+                    
+                });
             }
             catch (Exception e)
             {

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <version>1.5.6</version>
+        <version>1.5.7</version>
         <Nullable>enable</Nullable>
         <RootNamespace>StreamNet</RootNamespace>
     </PropertyGroup>
