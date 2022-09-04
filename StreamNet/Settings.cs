@@ -14,7 +14,6 @@ namespace StreamNet
         {
             var jsonFiles = Directory.EnumerateFiles(".", "*.json", SearchOption.AllDirectories);
             var builder = new ConfigurationBuilder();
-            // foreach (var path in jsonFiles) builder.AddJsonFile(path);
             builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             builder.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",
                 optional: true);

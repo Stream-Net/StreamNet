@@ -22,15 +22,13 @@ namespace StreamNet.Consumers
         private string TopicName { get; set; }
         protected TEvent Message { get; set; }
         protected readonly ILogger<Consumer<TEvent>> _logger;
+        protected Guid CorrelationId;
 
         protected Consumer(ILogger<Consumer<TEvent>> logger)
         {
             Settings.GetInstance();
+
             _logger = logger;
-            
-            // if (UnitTestDetector.IsRunningFromUnitTesting())
-            //     return;
-            
             SetConsumerId();
             SetTopicName();
             _retryPolicy = Policy.Handle<Exception>()
@@ -41,14 +39,14 @@ namespace StreamNet.Consumers
         private void SetTopicName()
         {
             var topicNameFromAttribute =
-                ((TopicNameAttribute) Attribute.GetCustomAttribute(GetType(), typeof(TopicNameAttribute))!)?.TopicName;
+                ((TopicNameAttribute)Attribute.GetCustomAttribute(GetType(), typeof(TopicNameAttribute))!)?.TopicName;
             TopicName = string.IsNullOrEmpty(topicNameFromAttribute) ? typeof(TEvent).FullName : topicNameFromAttribute;
         }
 
         private void SetConsumerId()
         {
             var consumerGroup =
-                ((ConsumerGroupAttribute) Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!)
+                ((ConsumerGroupAttribute)Attribute.GetCustomAttribute(GetType(), typeof(ConsumerGroupAttribute))!)
                 .ConsumerGroup;
             if (string.IsNullOrEmpty(consumerGroup) && !UnitTestDetector.IsRunningFromUnitTesting())
                 throw new ArgumentNullException($"ConsumerGroup attribute is required!");
@@ -69,8 +67,11 @@ namespace StreamNet.Consumers
                     while (true)
                     {
                         _consumeResult = _consumer.Consume(cancelToken.Token);
+                        CorrelationId = Guid.NewGuid();
                         Message = _consumeResult.Message.Value;
+                        _logger.BeginScope("{@CorrelationId}", CorrelationId);
                         _logger.LogInformation("Processing message: {@Message}", Message);
+
                         await _retryPolicy.ExecuteAsync(async () => { await HandleAsync(); });
                     }
                 }
