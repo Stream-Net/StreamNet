@@ -67,7 +67,7 @@ KafkaServer {
   org.apache.kafka.common.security.plain.PlainLoginModule required
   username="your_user"
   password="your_password"
-  user_admin="your_password";
+  user_admin="your_admin_user";
 };
 Client{};
 ```
@@ -191,4 +191,4 @@ It accepts any dependency injection parameter you'll need to use.
 
 # Community c(h)at
 Any questions or thoughts? 
-Please, send us a message in our [discord server](https://discord.gg/xBaPuecx)!
+Please, send us a message in our [telegram channel](https://t.me/+s-G6Sor5F5xiYTFh)!
