@@ -43,6 +43,7 @@ services:
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf

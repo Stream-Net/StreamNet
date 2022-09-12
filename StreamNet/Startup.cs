@@ -1,6 +1,7 @@
 using StreamNet.Consumers;
 using StreamNet.Producers;
 using Microsoft.Extensions.DependencyInjection;
+using StreamNet.Topic;
 
 namespace StreamNet
 {
@@ -16,6 +17,12 @@ namespace StreamNet
         public static IServiceCollection AddProducer(this IServiceCollection services)
         {
             services.AddTransient<IPublisher, Publisher>();
+            return services;
+        }
+
+        public static IServiceCollection AddTopicManagement(this IServiceCollection services)
+        {
+            services.AddTransient<ITopicManagement, TopicManagement>();
             return services;
         }
     }

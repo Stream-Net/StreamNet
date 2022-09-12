@@ -25,7 +25,14 @@ namespace StreamNet
             var saslMechanism = configuration.GetSection("Kafka:SaslMechanism").Value;
             var securityProtocol = configuration.GetSection("Kafka:SecurityProtocol").Value;
             var username = configuration.GetSection("Kafka:Username").Value;
-            var password = configuration.GetSection("Kafka:Password").Value;
+            var saslPassword = configuration.GetSection("Kafka:Password").Value;
+
+            _bootstrapServers = bootstrapServers;
+            _saslMechanism = saslMechanism;
+            _securityProtocol = securityProtocol;
+            _username = username;
+            _saslPassword = saslPassword;
+            
             int.TryParse(configuration.GetSection("Kafka:RetryCount").Value, out var retryCount);
             RetryCount = retryCount;
             int.TryParse(configuration.GetSection("Kafka:TimeToRetryInSeconds").Value, out var timeToRetryInSeconds);
@@ -33,11 +40,11 @@ namespace StreamNet
             int.TryParse(configuration.GetSection("Kafka:ConsumerInstances").Value, out var consumerInstances);
             TimeToRetryInSeconds = timeToRetryInSeconds;
 
-            if (bootstrapServers.IsNullOrEmpty())
+            if (_bootstrapServers.IsNullOrEmpty())
                 if (!UnitTestDetector.IsRunningFromUnitTesting())
                     throw new ArgumentNullException("BootstrapServers is required!");
 
-            if ((username.IsNullOrEmpty() || password.IsNullOrEmpty()))
+            if ((_username.IsNullOrEmpty() || _saslPassword.IsNullOrEmpty()))
                 if (!UnitTestDetector.IsRunningFromUnitTesting())
                     throw new ArgumentNullException("Username and password is required!");
 
@@ -47,7 +54,7 @@ namespace StreamNet
                 SecurityProtocol = GetSecurityProtocol(securityProtocol),
                 SaslMechanism = GetSaslMechanism(saslMechanism),
                 SaslUsername = username,
-                SaslPassword = password,
+                SaslPassword = saslPassword,
             };
 
             AdminClient = new AdminClientBuilder(config).Build();
@@ -58,17 +65,17 @@ namespace StreamNet
                 SecurityProtocol = GetSecurityProtocol(securityProtocol),
                 SaslMechanism = GetSaslMechanism(saslMechanism),
                 SaslUsername = username,
-                SaslPassword = password,
+                SaslPassword = saslPassword,
             };
 
             ConsumerConfig = new ConsumerConfig
             {
                 ClientId = Dns.GetHostName(),
-                BootstrapServers = bootstrapServers,
-                SecurityProtocol = GetSecurityProtocol(securityProtocol),
-                SaslMechanism = GetSaslMechanism(saslMechanism),
-                SaslUsername = username,
-                SaslPassword = password,
+                BootstrapServers = _bootstrapServers,
+                SecurityProtocol = GetSecurityProtocol(_securityProtocol),
+                SaslMechanism = GetSaslMechanism(_saslMechanism),
+                SaslUsername = _username,
+                SaslPassword = _saslPassword,
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
         }
@@ -84,7 +91,7 @@ namespace StreamNet
             return _instance;
         }
 
-        private SecurityProtocol GetSecurityProtocol(string securityProtocol)
+        internal SecurityProtocol GetSecurityProtocol(string securityProtocol)
         {
             switch (securityProtocol)
             {
@@ -103,7 +110,7 @@ namespace StreamNet
             }
         }
 
-        private SaslMechanism GetSaslMechanism(string saslMechanism)
+        internal SaslMechanism GetSaslMechanism(string saslMechanism)
         {
             switch (saslMechanism)
             {
@@ -123,6 +130,39 @@ namespace StreamNet
                         : (SaslMechanism) default!;
             }
         }
+
+        internal IAdminClient GetNewAdminClient()
+        {
+            var config = new AdminClientConfig
+            {
+                BootstrapServers = _bootstrapServers,
+                SecurityProtocol = GetSecurityProtocol(_securityProtocol),
+                SaslMechanism = GetSaslMechanism(_saslMechanism),
+                SaslUsername = _username,
+                SaslPassword = _saslPassword
+            };
+            return new AdminClientBuilder(config).Build();
+        }
+
+        internal void SetNewAdminClient()
+        {
+            var config = new AdminClientConfig
+            {
+                BootstrapServers = _bootstrapServers,
+                SecurityProtocol = GetSecurityProtocol(_securityProtocol),
+                SaslMechanism = GetSaslMechanism(_saslMechanism),
+                SaslUsername = _username,
+                SaslPassword = _saslPassword
+            };
+            AdminClient = new AdminClientBuilder(config).Build();
+        }
+
+
+        internal readonly string _bootstrapServers;
+        internal readonly string _securityProtocol;
+        internal readonly string _saslMechanism;
+        internal readonly string _username;
+        internal readonly string _saslPassword;
 
         public static IAdminClient AdminClient { get; private set; }
         public static ProducerConfig ProducerConfig { get; private set; }
