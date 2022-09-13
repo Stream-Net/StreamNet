@@ -190,6 +190,57 @@ YourMessageType_dead_letter.
 
 It accepts any dependency injection parameter you'll need to use.
 
+
+# Topic Management
+Sometimes, we need to build an app to manage our topics, and give more governance in brokers, to easily develop our tasks.
+For this purpose, we delivered some methods to make our life simple.
+
+### Configuring application startup
+To enable topic management in your app, you can add this feature in Startup.cs or Program.cs(in case of .net 6 or later) with the following line.
+``` cs 
+builder.Services.AddTopicManagement();
+```
+After doing this, the interface ITopicManagement will be ready to use.
+
+### Using the ITopicManagement interface
+To use topic management tools, first, you'll need to inject the ITopicManagement interface, as you can see next
+``` cs 
+public class CreateTopicUseCase : ICreateTopicUseCase
+{
+    private readonly ITopicManagement _topicManagement;
+
+    public CreateTopicUseCase(ITopicManagement topicManagement)
+    {
+        _topicManagement = topicManagement;
+    }
+}
+```
+### Creating a new topic
+To create a new topic, just use the ```CreateTopicAsync``` method.
+The method, can receive 3 parameters: <br><br>
+**topicName**: the name of topic to create.<br>
+**replicationFactor**: the replication factor of topic. More information about replication factor [here.](https://kafka.apache.org/documentation/#basic_ops)<br>
+**numberOfPartitions**: the number of partitions for your topic. More information about topic partitioning [here.](https://kafka.apache.org/documentation/#intro_concepts_and_terms)<br>
+
+### Deleting a single topic
+To create a new topic, just use the ```DeleteTopicAsync``` method.
+The method, can receive 1 parameter: <br><br>
+**topicName**: the name of topic to delete.<br>
+
+### Deleting a range of topics
+To create a new topic, just use the ```DeleteTopicsAsync``` method.
+The method, can receive 1 parameter: <br><br>
+**topicNames**: a list with the name of topics to delete.<br>
+
+### Getting topic metadata
+You can retrieve the topic information from your topic, to make use of this, just call the ```GetTopicData``` method.
+The method, can receive 1 parameter: <br><br>
+**topicName**: the name of topic to retrieve metadata.<br>
+
+### Getting topics metadata
+You can retrieve the topic information from all your topics, to make use of this, just call the ```GetTopicsData``` method.
+The method, didn't receive any parameters.
+
 # Community c(h)at
 Any questions or thoughts? 
 Please, send us a message in our [telegram channel](https://t.me/+s-G6Sor5F5xiYTFh)!
