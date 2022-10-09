@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
 using StreamNet.Extensions;
 using Microsoft.Extensions.Configuration;
 using StreamNet.UnitTestingHelpers;
@@ -27,6 +28,8 @@ namespace StreamNet
             var username = configuration.GetSection("Kafka:Username").Value;
             var saslPassword = configuration.GetSection("Kafka:Password").Value;
 
+            var schemaRegistryUrl = configuration.GetSection("Kafka:SchemaRegistry:Url").Value;
+            
             _bootstrapServers = bootstrapServers;
             _saslMechanism = saslMechanism;
             _securityProtocol = securityProtocol;
@@ -78,6 +81,14 @@ namespace StreamNet
                 SaslPassword = _saslPassword,
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
+            
+
+            SchemaRegistryConfig = new SchemaRegistryConfig
+            {
+                Url = schemaRegistryUrl
+            };
+
+            
         }
 
         private static Settings _instance;
@@ -167,6 +178,9 @@ namespace StreamNet
         public static IAdminClient AdminClient { get; private set; }
         public static ProducerConfig ProducerConfig { get; private set; }
         public static ConsumerConfig ConsumerConfig { get; private set; }
+
+        public static SchemaRegistryConfig SchemaRegistryConfig { get; private set; }
+        
         public static int RetryCount { get; private set; }
         public static int TimeToRetryInSeconds { get; private set; }
     }
