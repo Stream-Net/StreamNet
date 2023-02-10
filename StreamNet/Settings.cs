@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Net;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using StreamNet.Extensions;
 using Microsoft.Extensions.Configuration;
 using StreamNet.UnitTestingHelpers;
@@ -27,12 +29,19 @@ namespace StreamNet
             var username = configuration.GetSection("Kafka:Username").Value;
             var saslPassword = configuration.GetSection("Kafka:Password").Value;
 
+            var schemaRegistryUrl = configuration.GetSection("Kafka:SchemaRegistry:Url").Value;
+            int.TryParse(configuration.GetSection("Kafka:SchemaRegistry:RequestTimeoutMs").Value,
+                out int schemaRegistryRequestTimeoutMs);
+            int.TryParse(configuration.GetSection("Kafka:SchemaRegistry:MaxCachedSchemas").Value,
+                out int schemaRegistryMaxCachedSchemas);
+
+
             _bootstrapServers = bootstrapServers;
             _saslMechanism = saslMechanism;
             _securityProtocol = securityProtocol;
             _username = username;
             _saslPassword = saslPassword;
-            
+
             int.TryParse(configuration.GetSection("Kafka:RetryCount").Value, out var retryCount);
             RetryCount = retryCount;
             int.TryParse(configuration.GetSection("Kafka:TimeToRetryInSeconds").Value, out var timeToRetryInSeconds);
@@ -43,10 +52,6 @@ namespace StreamNet
             if (_bootstrapServers.IsNullOrEmpty())
                 if (!UnitTestDetector.IsRunningFromUnitTesting())
                     throw new ArgumentNullException("BootstrapServers is required!");
-
-            if ((_username.IsNullOrEmpty() || _saslPassword.IsNullOrEmpty()))
-                if (!UnitTestDetector.IsRunningFromUnitTesting())
-                    throw new ArgumentNullException("Username and password is required!");
 
             var config = new AdminClientConfig
             {
@@ -78,6 +83,15 @@ namespace StreamNet
                 SaslPassword = _saslPassword,
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
+            
+            if(!schemaRegistryUrl.IsNullOrWhitespace())
+                SchemaRegistryConfig = new SchemaRegistryConfig
+                {
+                    Url = schemaRegistryUrl,
+                    RequestTimeoutMs = schemaRegistryRequestTimeoutMs,
+                    MaxCachedSchemas = schemaRegistryMaxCachedSchemas
+                };
+
         }
 
         private static Settings _instance;
@@ -91,7 +105,7 @@ namespace StreamNet
             return _instance;
         }
 
-        internal SecurityProtocol GetSecurityProtocol(string securityProtocol)
+        internal SecurityProtocol? GetSecurityProtocol(string securityProtocol)
         {
             switch (securityProtocol)
             {
@@ -103,14 +117,11 @@ namespace StreamNet
                     return SecurityProtocol.SaslPlaintext;
                 case "SaslSsl":
                     return SecurityProtocol.SaslSsl;
-                default:
-                    return !UnitTestDetector.IsRunningFromUnitTesting()
-                        ? throw new ArgumentNullException("Security Protocol is required!")
-                        : (SecurityProtocol) default!;
+                default: return null;
             }
         }
 
-        internal SaslMechanism GetSaslMechanism(string saslMechanism)
+        internal SaslMechanism? GetSaslMechanism(string saslMechanism)
         {
             switch (saslMechanism)
             {
@@ -124,10 +135,7 @@ namespace StreamNet
                     return SaslMechanism.ScramSha512;
                 case "OAuthBearer":
                     return SaslMechanism.OAuthBearer;
-                default:
-                    return !UnitTestDetector.IsRunningFromUnitTesting()
-                        ? throw new ArgumentNullException("Sasl Mechanism is required !")
-                        : (SaslMechanism) default!;
+                default: return null;
             }
         }
 
@@ -157,7 +165,6 @@ namespace StreamNet
             AdminClient = new AdminClientBuilder(config).Build();
         }
 
-
         internal readonly string _bootstrapServers;
         internal readonly string _securityProtocol;
         internal readonly string _saslMechanism;
@@ -167,6 +174,8 @@ namespace StreamNet
         public static IAdminClient AdminClient { get; private set; }
         public static ProducerConfig ProducerConfig { get; private set; }
         public static ConsumerConfig ConsumerConfig { get; private set; }
+        public static SchemaRegistryConfig SchemaRegistryConfig { get; private set; }
+        public static AvroSerializer<byte[]> AvroSerializer { get; private set; }
         public static int RetryCount { get; private set; }
         public static int TimeToRetryInSeconds { get; private set; }
     }

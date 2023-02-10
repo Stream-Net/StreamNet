@@ -4,6 +4,7 @@ namespace StreamNet.Producers
 {
     public interface IPublisher
     {
+        Task ProduceAvroAsync<T>(T message, string? topicName = null);
         Task ProduceAsync<T>(T message, string? topicName = null);
     }
 }
