@@ -1,7 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Avro.Generic;
 using Confluent.Kafka;
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using StreamNet.Serializers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -58,35 +62,64 @@ namespace StreamNet.Consumers
 
         protected async Task Consume()
         {
-            try
+            var consumeTask = Task.Run(() =>
             {
-                _consumer.Subscribe(TopicName);
-                var cancelToken = new CancellationTokenSource();
-                try
+                using (var schemaRegistry = new CachedSchemaRegistryClient(Settings.SchemaRegistryConfig))
+                using (var consumer = new ConsumerBuilder<string, TEvent>(Settings.ConsumerConfig).SetKeyDeserializer(new AvroDeserializer<string>(schemaRegistry).AsSyncOverAsync()).SetValueDeserializer(new AvroDeserializer<TEvent>(schemaRegistry).AsSyncOverAsync()).Build()) 
                 {
-                    while (true)
+                    consumer.Subscribe(TopicName);
+                    try
                     {
-                        _consumeResult = _consumer.Consume(cancelToken.Token);
-                        CorrelationId = Guid.NewGuid();
-                        Message = _consumeResult.Message.Value;
-                        _logger.BeginScope("{@CorrelationId}", CorrelationId);
-                        _logger.LogInformation("Processing message: {@Message}", Message);
-
-                        await _retryPolicy.ExecuteAsync(async () => { await HandleAsync(); });
+                        while (true)
+                        {
+                            try
+                            {
+                                var consumeResult = consumer.Consume(new CancellationTokenSource().Token);
+                                Console.WriteLine($"Key: {consumeResult.Message.Key}\nValue: {consumeResult.Value}");
+                            }
+                            catch (ConsumeException e)
+                            {
+                                Console.WriteLine($"Consume error: {e.Error.Reason}");
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // commit final offsets and leave the group.
+                        consumer.Close();
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    _consumer.Close();
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInformation("Sending message to dead-letter {@Message}", Message);
-                await new Publisher().ProduceAsyncDeadLetter(Message, TopicName);
-                Consume();
-            }
+            });
+
+
+            // try
+            // {
+            //     _consumer.Subscribe(TopicName);
+            //     var cancelToken = new CancellationTokenSource();
+            //     try
+            //     {
+            //         while (true)
+            //         {
+            //             _consumeResult = _consumer.Consume(cancelToken.Token);
+            //             CorrelationId = Guid.NewGuid();
+            //             Message = _consumeResult.Message.Value;
+            //             _logger.BeginScope("{@CorrelationId}", CorrelationId);
+            //             _logger.LogInformation("Processing message: {@Message}", Message);
+            //             await _retryPolicy.ExecuteAsync(async () => { await HandleAsync(); });
+            //         }
+            //     }
+            //     catch (OperationCanceledException)
+            //     {
+            //         _consumer.Close();
+            //         throw;
+            //     }
+            // }
+            // catch (Exception ex)
+            // {
+            //     _logger.LogInformation("Sending message to dead-letter {@Message}", Message);
+            //     await new Publisher().ProduceAsyncDeadLetter(Message, TopicName);
+            //     Consume();
+            // }
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
