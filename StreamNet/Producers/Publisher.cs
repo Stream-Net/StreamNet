@@ -7,10 +7,7 @@ namespace StreamNet.Producers
 {
     public class Publisher : IPublisher
     {
-        public Publisher()
-        {
-            Settings.GetInstance();
-        }
+        public Publisher() => Settings.GetInstance();
 
         public async Task ProduceAsync<T>(T message, string? topicName = null)
         {
@@ -21,8 +18,7 @@ namespace StreamNet.Producers
                     using var producerBuilder = new ProducerBuilder<Null, T>(Settings.ProducerConfig)
                         .SetValueSerializer(new Serializer<T>()).Build();
                     topicName ??= message?.GetType().FullName;
-                    await producerBuilder.ProduceAsync(topicName, new Message<Null, T> {Value = message});
-                    
+                    await producerBuilder.ProduceAsync(topicName, new Message<Null, T> { Value = message });
                 });
             }
             catch (Exception e)
@@ -45,7 +41,7 @@ namespace StreamNet.Producers
                     return;
 
                 await producerBuilder.ProduceAsync($"{topicName}_dead_letter",
-                    new Message<Null, T> {Value = message});
+                    new Message<Null, T> { Value = message });
             }
             catch (Exception e)
             {

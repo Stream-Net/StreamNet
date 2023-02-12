@@ -44,10 +44,6 @@ namespace StreamNet
                 if (!UnitTestDetector.IsRunningFromUnitTesting())
                     throw new ArgumentNullException("BootstrapServers is required!");
 
-            if ((_username.IsNullOrEmpty() || _saslPassword.IsNullOrEmpty()))
-                if (!UnitTestDetector.IsRunningFromUnitTesting())
-                    throw new ArgumentNullException("Username and password is required!");
-
             var config = new AdminClientConfig
             {
                 BootstrapServers = bootstrapServers,
@@ -104,9 +100,7 @@ namespace StreamNet
                 case "SaslSsl":
                     return SecurityProtocol.SaslSsl;
                 default:
-                    return !UnitTestDetector.IsRunningFromUnitTesting()
-                        ? throw new ArgumentNullException("Security Protocol is required!")
-                        : (SecurityProtocol) default!;
+                    return default;
             }
         }
 
@@ -125,9 +119,7 @@ namespace StreamNet
                 case "OAuthBearer":
                     return SaslMechanism.OAuthBearer;
                 default:
-                    return !UnitTestDetector.IsRunningFromUnitTesting()
-                        ? throw new ArgumentNullException("Sasl Mechanism is required !")
-                        : (SaslMechanism) default!;
+                    return default;
             }
         }
 
